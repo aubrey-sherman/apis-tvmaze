@@ -3,7 +3,8 @@
 const $showsList = $("#showsList");
 const $episodesArea = $("#episodesArea");
 const $searchForm = $("#searchForm");
-//TODO: add global constant for default URL and the api for tvmaze
+const DEFAULT_IMG_URL = "https://tinyurl.com/tv-missing";
+const API_TVMAZE_URL = "http://api.tvmaze.com";
 
 /** Given a search term, search for tv shows that match that query.
  *
@@ -15,30 +16,17 @@ const $searchForm = $("#searchForm");
 async function getShowsByTerm(term) {
   // ADD: Remove placeholder & make request to TVMaze search shows API.
   const params = new URLSearchParams({q: term});
-  const response = await fetch(`http://api.tvmaze.com/search/shows?${params}`);
+  const response = await fetch(`${API_TVMAZE_URL}/search/shows?${params}`);
   const searchData = await response.json();
-  const listOfShows = [];
-  // TODO: use map to refactor
-  for(const data of searchData) {
-    let imgUrl;
-    if(data.show.image === null) {
-      imgUrl = "https://tinyurl.com/tv-missing";
-    }
-    else {
-      imgUrl = data.show.image.medium;
-    }
 
-    const show = {
+  return searchData.map(function(data) {
+    return {
       id: data.show.id,
       name: data.show.name,
       summary: data.show.summary,
-      image: imgUrl
+      image: data.show.image === null ? data.show.image.medium : DEFAULT_IMG_URL,
     }
-
-    listOfShows.push(show);
-  }
-
-  return listOfShows;
+  });
 }
 
 
