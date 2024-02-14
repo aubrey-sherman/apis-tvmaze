@@ -24,7 +24,7 @@ async function getShowsByTerm(term) {
       id: data.show.id,
       name: data.show.name,
       summary: data.show.summary,
-      image: data.show.image === null ? data.show.image.medium : DEFAULT_IMG_URL,
+      image: data.show.image ? data.show.image.medium : DEFAULT_IMG_URL,
     }
   });
 }
