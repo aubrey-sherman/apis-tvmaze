@@ -14,7 +14,6 @@ const API_TVMAZE_URL = "http://api.tvmaze.com";
  */
 
 async function getShowsByTerm(term) {
-  // ADD: Remove placeholder & make request to TVMaze search shows API.
   const params = new URLSearchParams({ q: term });
   const response = await fetch(`${API_TVMAZE_URL}/search/shows?${params}`);
   const searchData = await response.json();
@@ -30,14 +29,12 @@ async function getShowsByTerm(term) {
 }
 
 
-/** Given list of shows, create markup for each and append to DOM.
+/**Given list of shows, create markup for each and append to DOM.
  *
  * A show is {id, name, summary, image}
  * */
 
 function displayShows(shows) {
-  $showsList.empty();
-
   for (const show of shows) {
     const $show = $(`
         <div data-show-id="${show.id}" class="Show col-md-12 col-lg-6 mb-4">
@@ -63,6 +60,7 @@ function displayShows(shows) {
 
 
 /** Handle search form submission: get shows from API and display.
+ *    Clears the shows list
  *    Hide episodes area (that only gets shown if they ask for episodes)
  */
 
@@ -70,6 +68,7 @@ async function searchShowsAndDisplay() {
   const term = $("#searchForm-term").val();
   const shows = await getShowsByTerm(term);
 
+  $showsList.empty();
   $episodesArea.hide();
   displayShows(shows);
 }
@@ -85,18 +84,29 @@ $searchForm.on("submit", async function handleSearchForm(evt) {
  */
 
 async function getEpisodesOfShow(showId) {
-
   const response = await fetch(`${API_TVMAZE_URL}/shows/${showId}/episodes`);
+  const episodes = await response.json();
 
-  return await response.json();
-
+  return episodes.map(function(episode) {
+    return {
+      id: episode.id,
+      name: episode.name,
+      season: episode.season,
+      number: episode.number
+    };
+  });
 }
 
-/** Write a clear docstring for this function... */
+/** Empty the list of shows
+ *
+ *  Given a (promise) array of episode objects, retrieve info about each episode
+ *  and append a new list element containing this info to the DOM
+ *
+ *  Unhide previously hidden episode area
+ */
 
 function displayEpisodes(episodes) {
-
-  $("#showsList").empty();
+  $("#episodesList").empty();
 
   for (let episode of episodes) {
     const episodeInfo = $(`<li>${episode.name} (Season ${episode.season},
@@ -105,25 +115,21 @@ function displayEpisodes(episodes) {
   }
 
   $episodesArea.show();
-
 }
 
-// add other functions that will be useful / match our structure & design
+/** Given a show's ID, retrieve its episodes and display them on the page */
 
 async function getEpisodesAndDisplay(showId) {
-
   const episodes = await getEpisodesOfShow(showId);
   displayEpisodes(episodes);
-
 }
 
+/** Handles clicking of the Episodes button under each show */
+
 async function handleEpisodeButtonClick(event) {
-
-  //event.preventDefault();
   const showId = Number($(event.target).closest(".Show").data("show-id"));
-  //console.log("showId=", showId);
-  await getEpisodesAndDisplay(showId);
 
+  await getEpisodesAndDisplay(showId);
 }
 
 $showsList.on("click", ".Show-getEpisodes", handleEpisodeButtonClick);
