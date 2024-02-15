@@ -15,17 +15,17 @@ const API_TVMAZE_URL = "http://api.tvmaze.com";
 
 async function getShowsByTerm(term) {
   // ADD: Remove placeholder & make request to TVMaze search shows API.
-  const params = new URLSearchParams({q: term});
+  const params = new URLSearchParams({ q: term });
   const response = await fetch(`${API_TVMAZE_URL}/search/shows?${params}`);
   const searchData = await response.json();
 
-  return searchData.map(function(data) {
+  return searchData.map(function (data) {
     return {
       id: data.show.id,
       name: data.show.name,
       summary: data.show.summary,
       image: data.show.image ? data.show.image.medium : DEFAULT_IMG_URL,
-    }
+    };
   });
 }
 
@@ -74,7 +74,7 @@ async function searchShowsAndDisplay() {
   displayShows(shows);
 }
 
-$searchForm.on("submit", async function handleSearchForm (evt) {
+$searchForm.on("submit", async function handleSearchForm(evt) {
   evt.preventDefault();
   await searchShowsAndDisplay();
 });
@@ -84,10 +84,46 @@ $searchForm.on("submit", async function handleSearchForm (evt) {
  *      { id, name, season, number }
  */
 
-// async function getEpisodesOfShow(id) { }
+async function getEpisodesOfShow(showId) {
+
+  const response = await fetch(`${API_TVMAZE_URL}/shows/${showId}/episodes`);
+
+  return await response.json();
+
+}
 
 /** Write a clear docstring for this function... */
 
-// function displayEpisodes(episodes) { }
+function displayEpisodes(episodes) {
+
+  $("#showsList").empty();
+
+  for (let episode of episodes) {
+    const episodeInfo = $(`<li>${episode.name} (Season ${episode.season},
+      Number ${episode.number})</li>`);
+    $("#episodesList").append(episodeInfo);
+  }
+
+  $episodesArea.show();
+
+}
 
 // add other functions that will be useful / match our structure & design
+
+async function getEpisodesAndDisplay(showId) {
+
+  const episodes = await getEpisodesOfShow(showId);
+  displayEpisodes(episodes);
+
+}
+
+async function handleEpisodeButtonClick(event) {
+
+  //event.preventDefault();
+  const showId = Number($(event.target).closest(".Show").data("show-id"));
+  //console.log("showId=", showId);
+  await getEpisodesAndDisplay(showId);
+
+}
+
+$showsList.on("click", ".Show-getEpisodes", handleEpisodeButtonClick);
